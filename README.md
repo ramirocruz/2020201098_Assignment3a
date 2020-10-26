@@ -1,7 +1,5 @@
 # Assignment 3 part 1
 
-### I have created a separate folder for each question since there were conflicting files
-
 # Q1
 * I have modified the json to map parent with id rather than name since id is unique.
 * The json file will have one more field for each employee named eid
