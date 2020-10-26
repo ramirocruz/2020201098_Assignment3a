@@ -17,5 +17,4 @@
 * Then I have converted this compare function to key for the sort function
 
 ## Github link:
-`https://github.com/ramirocruz/2020201098_Assignment3a`
-
+[GitHub](https://github.com/ramirocruz/2020201098_Assignment3a)
