@@ -1,4 +1,5 @@
 from functools import cmp_to_key
+from datetime import date
 def diff(time1,time2):
     pos1=time1.find(":")
     h1=int(time1[:pos1])
@@ -66,7 +67,7 @@ t1 = [i.replace(" ","") for i in t1]
 t2 = [i.replace(" ","") for i in t2]
 
 t1=[i.split('-') for i in t1]
-
+# print(t1)
 
 merged=[]
 open1=[]
@@ -75,6 +76,7 @@ second="5:00PM"
 for interval in t1:
     # print(interval[0],interval[1],first)
     if(diff(interval[0],first)==0):
+        first=interval[1]
         continue
     merged.append([first,interval[0]])
     open1.append("{} - {}".format(first,interval[0]))
@@ -93,6 +95,7 @@ first="9:00AM"
 second="5:00PM"
 for interval in t2:
     if(diff(interval[0],first)==0):
+        first=interval[1]
         continue
     merged.append([first,interval[0]])
     open2.append("{} - {}".format(first,interval[0]))
@@ -119,8 +122,15 @@ for i in range(len(merged)-1):
         ans.append("{} - {}".format(merged[i+1][0],addtime(merged[i+1][0],slot)))
         break
 
-# print(ans)
 newans={'{}'.format(d1):ans}
+
+D1,M1,Y1=[int(x) for x in d1.split('/')]
+D2,M2,Y2=[int(x) for x in d2.split('/')]
+d1=date(Y1,M1,D1)
+d2=date(Y2,M2,D2)
+
+# print(ans)
+
 res="Available slot\n"
 res+="{}: {}\n".format(ename1,open1)
 res+="{}: {}\n\n".format(ename2,open2)
