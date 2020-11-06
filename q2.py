@@ -1,3 +1,4 @@
+import sys
 
 monthdayslist=[31,28,31,30,31,30,31,31,30,31,30,31]
 monthmap={"jan":1,"feb":2,"mar":3,"apr":4,"may":5,"jun":6,"jul":7,"aug":8,"sep":9,"oct":10,"nov":11,"dec":12,"january":1,"february":2,"march":3,"april":4,"may":5,"june":6,"july":7,"august":8,"september":9,"october":10,"november":11,"december":12}
@@ -37,7 +38,9 @@ def calcdays(day,month,year):
     return total
 
 def parse(date):
-    if(date.find(",")!=-1):
+    if(date.find(" ")!=-1):
+        date= date.split()  
+    elif(date.find(",")!=-1):
         date= date.split(",")
     elif(date.find(".")!=-1):
         date= date.split(".")
@@ -45,8 +48,7 @@ def parse(date):
         date= date.split("-")
     elif(date.find("/")!=-1):
         date= date.split("/")
-    elif(date.find(" ")!=-1):
-        date= date.split()   
+ 
 
     date=[el.strip() for el in date]
     return date
@@ -86,7 +88,10 @@ def v_month(month):
         try:
             month=monthmap[month.lower()]
         except KeyError:
-            return -1
+            try:
+                month=monthmap[month.lower()[:-1]]
+            except KeyError:
+                return -1
     if(month < 1 and month > 12):
         return -1
     return month
@@ -100,27 +105,47 @@ def v_year(year):
         return -1
     return year
 
-def validate(date,result):
-    if(len(date)!=3):
-        return False
-    year=v_year(date[2])
+def validate(day,month,year,result):
+    year=v_year(year)
     if(year==-1):
         return False
-    month=v_month(date[1])
+    month=v_month(month)
     if(month==-1):
         return False
-    day=v_day(date[0],month,year)
+    day=v_day(day,month,year)
     if(day==-1):
         return False
     result[:]=[day,month,year]
     return True
-def diffdays(date1,date2):
+
+def diffdays(date1,date2,dateformat):
     date1=parse(date1)
     date2=parse(date2)
     d1=[]
     d2=[]
-    res1=validate(date1,d1)
-    res2=validate(date2,d2)
+   
+    if(len(date1) !=3 or len(date2)!=3):
+        return -1
+    
+
+    res1=False
+    res2=False
+    
+    if(dateformat==None):
+        res1=validate(date1[0],date1[1],date1[2],d1)
+        res2=validate(date2[0],date2[1],date2[2],d2)
+  
+    else:
+        if(dateformat=="dmy"):
+            res1=validate(date1[0],date1[1],date1[2],d1)
+            res2=validate(date2[0],date2[1],date2[2],d2)
+        elif(dateformat=="mdy"):
+            res1=validate(date1[1],date1[0],date1[2],d1)
+            res2=validate(date2[1],date2[0],date2[2],d2)
+        else:
+            return -1
+
+
     if(res1 and res2):
         day1=calcdays(d1[0],d1[1],d1[2])
         day2=calcdays(d2[0],d2[1],d2[2])
@@ -137,7 +162,20 @@ data = [el[el.find(":")+1:].strip() for el in data]
 date1=data[0]
 date2=data[1]
 
-val = diffdays(date1,date2)
+argc = len(sys.argv)
+
+dateformat=None
+if(argc==2):
+    dateformat = sys.argv[1].lower()
+    dateformat=parse(dateformat)
+    temp=""
+    for el in dateformat:
+        temp+=el[0]
+    dateformat=temp
+
+
+
+val = diffdays(date1,date2,dateformat)
 
 if(val==-1):
     val="Invalid Dates"
@@ -145,4 +183,3 @@ if(val==-1):
 with open ("output.txt","w") as f:
     f.write(str(val))
 
-print(calcdays(10,9,2020))
