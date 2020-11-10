@@ -42,51 +42,63 @@ def addtime(t,dur):
     return "{}:{}AM".format(h,m)
 
 emp=[]  
+def get_data_from_file():
+    global emp
+    for filename in glob.glob('Employee*.txt'):
+        with open(filename,"r") as f:
+            emp.append(f.read())
+    emp = [eval(el) for el in emp]
 
-for filename in glob.glob('Employee*.txt'):
-    with open(filename,"r") as f:
-        emp.append(f.read())
-emp = [eval(el) for el in emp]
-# print(emp)
-
+get_data_from_file()
 ename=[]
 d=[]
 t=[]
-for emp1 in emp:
-    for i in emp1:
-        ename.append(i)
-        for el in emp1[i]:
-            d.append(el)
-            t.append(emp1[i][el])
+def categorise_data():
+    global ename
+    global d
+    global t
+    global emp
+    for emp1 in emp:
+        for i in emp1:
+            ename.append(i)
+            for el in emp1[i]:
+                d.append(el)
+                t.append(emp1[i][el])
 
+categorise_data()
 
+def format_data():
+    global t
+    for t1 in t:
+        t1[:] = [i.replace(" ","") for i in t1]
+        t1[:] = [i.split('-') for i in t1]
 
-for t1 in t:
-    t1[:] = [i.replace(" ","") for i in t1]
-    t1[:] = [i.split('-') for i in t1]
-
+format_data()
 
 vacant=[]
 totalmerged=[]
 
-for t1 in t:
-    merged=[]
-    open1=[]
-    first="9:00AM"
-    second="5:00PM"
-    for interval in t1:
-        # print(interval[0],interval[1],first)
-        if(diff(interval[0],first)==0):
+def get_free_time():
+    global totalmerged
+    global vacant
+    for t1 in t:
+        merged=[]
+        open1=[]
+        first="9:00AM"
+        second="5:00PM"
+        for interval in t1:
+            
+            if(diff(interval[0],first)==0):
+                first=interval[1]
+                continue
+            merged.append([first,interval[0]])
+            open1.append("{} - {}".format(first,interval[0]))
             first=interval[1]
-            continue
-        merged.append([first,interval[0]])
-        open1.append("{} - {}".format(first,interval[0]))
-        first=interval[1]
-    if(diff(t1[-1][1],second)!=0):
-        merged.append([t1[-1][1],second])
-        open1.append("{} - {}".format(t1[-1][1],second))
-    vacant.append(open1)
-    totalmerged.append(merged)
+        if(diff(t1[-1][1],second)!=0):
+            merged.append([t1[-1][1],second])
+            open1.append("{} - {}".format(t1[-1][1],second))
+        vacant.append(open1)
+        totalmerged.append(merged)
 
 
 def comp(list1,list2):
@@ -95,51 +107,65 @@ def comp(list1,list2):
         return diff(list1[1],list2[1])
     return val
 
+get_free_time()
 
 merged = totalmerged[0]
 
 slot=int(float(input().strip())*60)
-for i in range(1,len(totalmerged)):
-    merged.extend(totalmerged[i])
-    merged.sort(key=cmp_to_key(comp))
-    ans=[]
-    for i in range(len(merged)-1):
-        if(diff(merged[i][1],merged[i+1][0]) >= slot):
-            ans.append([merged[i+1][0],addtime(merged[i+1][0],slot)])
-    merged=ans
-# print(merged[0])
+
+def find_common_slot():
+    global merged
+    global totalmerged
+    for i in range(1,len(totalmerged)):
+        merged.extend(totalmerged[i])
+        merged.sort(key=cmp_to_key(comp))
+        ans=[]
+        for i in range(len(merged)-1):
+            if(diff(merged[i][1],merged[i+1][0]) >= slot):
+                ans.append([merged[i+1][0],addtime(merged[i+1][0],slot)])
+        merged=ans
 
 
+find_common_slot()
 
-
-
-newans={'{}'.format(d[0]):merged[0]}
+try:
+    newans={'{}'.format(d[0]):merged[0]}
+except IndexError:
+    newans={}
 
 D=[]
 tmp=[]
-for d1 in d:
-    tmp = [int(x) for x in d1.split('/')]
-    D.append(date(tmp[2],tmp[1],tmp[0]))
+def format_dates():
+    global D
+    global tmp
+    for d1 in d:
+        tmp = [int(x) for x in d1.split('/')]
+        D.append(date(tmp[2],tmp[1],tmp[0]))
+
+format_dates()
+
 def checkdate(D):
     for i in range(len(D)-1):
         if(D[i]!=D[i+1]):
             return False        
     return True
 
-# print(checkdate(D))
-# # print(ans)
 
-res="Available slot\n"
-for i in range(len(ename)):
-    res+="{}: {}\n".format(ename[i],vacant[i])
+def generate_op():
+    res="Available slot\n"
+    for i in range(len(ename)):
+        res+="{}: {}\n".format(ename[i],vacant[i])
 
 
-res+="Slot Duration: {} hour\n".format(slot/60)
-if(not checkdate(D) or len(merged)==0):
-    res+="No Slots Available"
-else:
-    res+=str(newans)
+    res+="Slot Duration: {} hour\n".format(slot/60)
+    if(not checkdate(D) or len(merged)==0):
+        res+="No Slots Available"
+    else:
+        res+=str(newans)
+    
+    return res
 
+res = generate_op()
 with open("output.txt","w") as f:
     f.write(res)
 
